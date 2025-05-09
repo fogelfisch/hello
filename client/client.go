@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"os"
 )
 
-func Client() {
+func Run() {
 
 	port := 30000
 	addr := fmt.Sprint(":", port)
@@ -19,30 +20,45 @@ func Client() {
 		panic(err)
 	}
 
+	//	incoming_messages := make(chan string)
 	fmt.Println("connected to", conn.RemoteAddr())
 
-	close_connection := func() {
-		fmt.Println("Closing connection...")
-		conn.Close()
-	}
+	go handle_connection(conn)
 
-	defer close_connection()
+	console_reader := bufio.NewReader(os.Stdin)
 
-	reader := bufio.NewReader(conn)
+	connection_writer := bufio.NewWriter(conn)
 
-	//buf := make([]byte, 0, 4096)
-
-	//	conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+	fmt.Println("Simple Chat")
+	fmt.Println("---------------------")
 
 	for {
-		// count, err := conn.Read(buf)
+		// fmt.Print("-> ")
+		message, _ := console_reader.ReadString('\n')
 
-		buf, err := reader.ReadBytes('\n')
+		// convert CRLF to LF
+		//	text = strings.Replace(text, "\n", "", -1)
+		connection_writer.WriteString(message)
+		connection_writer.Flush()
+	}
+}
+
+func handle_connection(c net.Conn) {
+
+	defer func() {
+		fmt.Printf("connection close %s\n", c.RemoteAddr().String())
+		c.Close()
+	}()
+
+	reader := bufio.NewReader(c)
+
+	for {
+		message, err := reader.ReadBytes('\n')
 
 		if err != nil {
 			return
 		}
 
-		fmt.Print(string(buf))
+		fmt.Print(string(message))
 	}
 }

@@ -19,10 +19,10 @@ func main() {
 	}
 
 	if args[1] == "s" {
-		server.Server()
+		server.Run()
 	}
 
 	if args[1] == "c" {
-		client.Client()
+		client.Run()
 	}
 }

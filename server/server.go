@@ -1,13 +1,47 @@
 package server
 
 import (
+	"bufio"
 	"fmt"
 	"net"
-	"time"
 )
 
-func Server() {
+func Run() {
 
+	incoming_connections := make(chan net.Conn)
+
+	go listen(incoming_connections)
+
+	var connections []net.Conn
+
+	incoming_messages := make(chan string)
+
+	for {
+
+		select {
+		case conn := <-incoming_connections:
+			{
+				connections = append(connections, conn)
+
+				go handle_connection(conn, incoming_messages)
+			}
+		case msg := <-incoming_messages:
+			{
+				fmt.Print(msg)
+
+				for _, c := range connections {
+
+					connection_writer := bufio.NewWriter(c)
+					connection_writer.WriteString(msg)
+					connection_writer.Flush()
+				}
+			}
+		}
+
+	}
+}
+
+func listen(incoming_connections chan<- net.Conn) {
 	port := 30000
 
 	listener, err := net.Listen("tcp", fmt.Sprint(":", port))
@@ -18,22 +52,41 @@ func Server() {
 
 	defer listener.Close()
 
-	fmt.Println("listening on", port, "...")
+	fmt.Println("Listening on port", port)
 
-	conn, err := listener.Accept()
+	for {
 
-	if err != nil {
-		panic(err)
+		conn, err := listener.Accept()
+
+		if err != nil {
+			panic(err)
+		}
+
+		incoming_connections <- conn
 	}
+}
 
-	defer conn.Close()
+func handle_connection(c net.Conn, incoming_messages chan<- string) {
 
-	fmt.Println("new connection to", conn.RemoteAddr())
+	fmt.Printf("connection new %s\n", c.RemoteAddr().String())
 
-	conn.Write([]byte("Tschüss\n"))
-	conn.Write([]byte("Du\n"))
-	conn.Write([]byte("kleiner\n"))
-	conn.Write([]byte("Sack\n"))
+	defer func() {
+		fmt.Printf("connection close %s\n", c.RemoteAddr().String())
+		c.Close()
+	}()
 
-	time.Sleep(10 * time.Second)
+	writer := bufio.NewWriter(c)
+	writer.WriteString("Hallo\n")
+
+	reader := bufio.NewReader(c)
+
+	for {
+		message, err := reader.ReadBytes('\n')
+
+		if err != nil {
+			return
+		}
+
+		incoming_messages <- string(message)
+	}
 }
