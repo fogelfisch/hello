@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func Run() {
+func Run(username string) {
 
 	port := 30000
 	addr := fmt.Sprint(":", port)
@@ -34,11 +34,15 @@ func Run() {
 
 	for {
 		// fmt.Print("-> ")
-		message, _ := console_reader.ReadString('\n')
+		message, err := console_reader.ReadString('\n')
+
+		if err != nil {
+			return
+		}
 
 		// convert CRLF to LF
 		//	text = strings.Replace(text, "\n", "", -1)
-		connection_writer.WriteString(message)
+		connection_writer.WriteString(username + ": " + message)
 		connection_writer.Flush()
 	}
 }

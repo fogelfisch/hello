@@ -13,16 +13,31 @@ func main() {
 	args := os.Args
 	fmt.Println("args: ", args)
 
-	if len(args) != 2 {
-		fmt.Println("genau ein Argument ist anzugeben")
-		panic(666)
+	hilfe_anzeigen := func() {
+		fmt.Println("Chat-Server starten mit: " + args[0] + " s")
+		fmt.Println("Chat-Client starten mit: " + args[0] + " c <username>")
+	}
+
+	if len(args) < 2 {
+		hilfe_anzeigen()
+		return
 	}
 
 	if args[1] == "s" {
 		server.Run()
+		return
 	}
 
 	if args[1] == "c" {
-		client.Run()
+
+		if len(args) < 3 {
+			hilfe_anzeigen()
+		}
+
+		username := args[2]
+		client.Run(username)
+		return
 	}
+
+	hilfe_anzeigen()
 }
