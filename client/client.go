@@ -7,10 +7,10 @@ import (
 	"os"
 )
 
-func Run(username string) {
+func Run(username string, server_ipadresse string) {
 
 	port := 30000
-	addr := fmt.Sprint(":", port)
+	addr := fmt.Sprint(server_ipadresse, ":", port)
 
 	fmt.Println("connecting to", addr, "...")
 

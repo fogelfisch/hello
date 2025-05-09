@@ -15,7 +15,7 @@ func main() {
 
 	hilfe_anzeigen := func() {
 		fmt.Println("Chat-Server starten mit: " + args[0] + " s")
-		fmt.Println("Chat-Client starten mit: " + args[0] + " c <username>")
+		fmt.Println("Chat-Client starten mit: " + args[0] + " c <username> [<server_ipadresse>]")
 	}
 
 	if len(args) < 2 {
@@ -32,10 +32,17 @@ func main() {
 
 		if len(args) < 3 {
 			hilfe_anzeigen()
+			return
 		}
 
 		username := args[2]
-		client.Run(username)
+		server_ipadresse := "127.0.0.1"
+
+		if len(args) > 3 {
+			server_ipadresse = args[3]
+		}
+
+		client.Run(username, server_ipadresse)
 		return
 	}
 
